@@ -1,0 +1,22 @@
+PODS:
+  - LBReusableScrollView (0.0.1)
+  - SDWebImage (5.1.1):
+    - SDWebImage/Core (= 5.1.1)
+  - SDWebImage/Core (5.1.1)
+
+DEPENDENCIES:
+  - LBReusableScrollView
+  - SDWebImage
+
+SPEC REPOS:
+  trunk:
+    - LBReusableScrollView
+    - SDWebImage
+
+SPEC CHECKSUMS:
+  LBReusableScrollView: dbc6b2051d64de194acf20248dfdf28244f347ae
+  SDWebImage: 96d7f03415ccb28d299d765f93557ff8a617abd8
+
+PODFILE CHECKSUM: a57789c8c13d30a8282219a422d52b20c6d243a5
+
+COCOAPODS: 1.8.0

@@ -23,10 +23,10 @@
     self = [super initWithFrame:frame];
     if (self) {
         _pageViews = [NSMutableArray array];
+        self.contentInsetAdjustmentBehavior = UIScrollViewContentInsetAdjustmentNever;
     }
     return self;
 }
-
 -(void)setLb_delegate:(id<LBReusableScrollViewDelegate>)lb_delegate{
     _lb_delegate = lb_delegate;
     self.delegate = self;

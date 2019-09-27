@@ -40,7 +40,6 @@
         LBReusableScrollView *previewScrollView = [[LBReusableScrollView alloc] init];
         previewScrollView.showsVerticalScrollIndicator = NO;
         previewScrollView.showsHorizontalScrollIndicator = NO;
-        
         // 单击
         UITapGestureRecognizer * singleTap = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(singleTapGestureCallback:)];
         [previewScrollView addGestureRecognizer:singleTap];

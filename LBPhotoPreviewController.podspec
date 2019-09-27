@@ -9,7 +9,8 @@ Pod::Spec.new do |spec|
   spec.platform     = :ios
   spec.ios.deployment_target = '8.0'
   spec.source       = { :git => 'https://github.com/A1129434577/LBPhotoPreviewController.git', :tag => spec.version.to_s }
-  spec.dependency     "SDWebImage","LBReusableScrollView"
+  spec.dependency     "SDWebImage"
+  spec.dependency     "LBReusableScrollView"
   spec.source_files = "LBPhotoPreviewController/**/*.{h,m}"
   spec.resource      = "LBPhotoPreviewController/**/*.png"
   spec.requires_arc = true

@@ -11,7 +11,7 @@ Pod::Spec.new do |spec|
   spec.source       = { :git => 'https://github.com/A1129434577/LBPhotoPreviewController.git', :tag => spec.version.to_s }
   spec.dependency     "SDWebImage","LBReusableScrollView"
   spec.source_files = "LBPhotoPreviewController/**/*.{h,m}"
-  sss.resource      = "LBPhotoPreviewController/**/*.png"
+  spec.resource      = "LBPhotoPreviewController/**/*.png"
   spec.requires_arc = true
 end
 #--use-libraries

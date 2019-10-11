@@ -93,8 +93,6 @@
     }else if(self.tabBarController && !self.tabBarController.tabBar.hidden && !self.hidesBottomBarWhenPushed){
         safeAreaInsetsBottom = CGRectGetHeight(self.tabBarController.tabBar.frame);
     }
-
-//    self.previewScrollView.frame = CGRectMake(0, safeAreaInsetsTop, CGRectGetWidth(self.view.bounds), CGRectGetHeight(self.view.bounds)-safeAreaInsetsTop-safeAreaInsetsBottom);
     self.previewScrollView.frame = self.view.bounds;
     [self.view addSubview:_previewScrollView];
     
@@ -146,53 +144,56 @@
     return self.privateImageObjects.count;
 }
 -(UIView *)scrollView:(LBReusableScrollView *)scrollView viewForPage:(NSUInteger)page{
-    NSObject<LBImageProtocol> *image = [self.privateImageObjects objectAtIndex:page];
-    // 用于图片的捏合缩放
-    UIScrollView *pinchScrollView = [[UIScrollView alloc] initWithFrame:CGRectMake(CGRectGetWidth(scrollView.bounds)*page, 0, CGRectGetWidth(scrollView.bounds), CGRectGetHeight(scrollView.bounds))];
-    pinchScrollView.contentSize = CGSizeMake(CGRectGetWidth(scrollView.bounds), CGRectGetHeight(scrollView.bounds));
-    pinchScrollView.minimumZoomScale = 1.0;
-    pinchScrollView.delegate = self;
-    pinchScrollView.showsHorizontalScrollIndicator = NO;
-    pinchScrollView.showsVerticalScrollIndicator = NO;
-    pinchScrollView.backgroundColor = [UIColor clearColor];
-    // 双击
-    UITapGestureRecognizer * doubleTap = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(doubleTapGestureCallback:)];
-    doubleTap.numberOfTapsRequired = 2;
-    [pinchScrollView addGestureRecognizer:doubleTap];
-    [scrollView.gestureRecognizers enumerateObjectsUsingBlock:^(__kindof UIGestureRecognizer * _Nonnull obj, NSUInteger idx, BOOL * _Nonnull stop) {
-        if ([obj isKindOfClass:UITapGestureRecognizer.self]) {
-            [obj requireGestureRecognizerToFail:doubleTap];
+    UIScrollView *pinchScrollView;
+    @autoreleasepool {
+        NSObject<LBImageProtocol> *image = [self.privateImageObjects objectAtIndex:page];
+        // 用于图片的捏合缩放
+        pinchScrollView = [[UIScrollView alloc] initWithFrame:CGRectMake(CGRectGetWidth(scrollView.bounds)*page, 0, CGRectGetWidth(scrollView.bounds), CGRectGetHeight(scrollView.bounds))];
+        pinchScrollView.contentSize = CGSizeMake(CGRectGetWidth(scrollView.bounds), CGRectGetHeight(scrollView.bounds));
+        pinchScrollView.minimumZoomScale = 1.0;
+        pinchScrollView.delegate = self;
+        pinchScrollView.showsHorizontalScrollIndicator = NO;
+        pinchScrollView.showsVerticalScrollIndicator = NO;
+        pinchScrollView.backgroundColor = [UIColor clearColor];
+        // 双击
+        UITapGestureRecognizer * doubleTap = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(doubleTapGestureCallback:)];
+        doubleTap.numberOfTapsRequired = 2;
+        [pinchScrollView addGestureRecognizer:doubleTap];
+        [scrollView.gestureRecognizers enumerateObjectsUsingBlock:^(__kindof UIGestureRecognizer * _Nonnull obj, NSUInteger idx, BOOL * _Nonnull stop) {
+            if ([obj isKindOfClass:UITapGestureRecognizer.self]) {
+                [obj requireGestureRecognizerToFail:doubleTap];
+            }
+        }];
+        
+        
+        UIImageView * imageView = [[UIImageView alloc] initWithFrame:pinchScrollView.bounds];
+        if (image.image) {
+            imageView.image = image.image;
+        }else if (image.imageUrl){
+            [imageView sd_setImageWithURL:image.imageUrl];
         }
-    }];
-    
-    
-    UIImageView * imageView = [[UIImageView alloc] initWithFrame:pinchScrollView.bounds];
-    if (image.image) {
-        imageView.image = image.image;
-    }else if (image.imageUrl){
-        [imageView sd_setImageWithURL:image.imageUrl];        
-    }
-    imageView.clipsToBounds  = YES;
-    imageView.contentMode = UIViewContentModeScaleAspectFit;
-    imageView.contentScaleFactor = [[UIScreen mainScreen] scale];
-    imageView.backgroundColor = [UIColor clearColor];
-    imageView.tag = 1000;
-    [pinchScrollView addSubview:imageView];
-    
-    CGSize imgSize = [imageView.image size];
-    CGFloat scaleX = CGRectGetWidth(self.view.bounds)/imgSize.width;
-    CGFloat scaleY = CGRectGetHeight(self.view.bounds)/imgSize.height;
-    if (scaleX > scaleY) {
-        CGFloat imgViewWidth = imgSize.width * scaleY;
-        pinchScrollView.maximumZoomScale = CGRectGetWidth(self.view.bounds)/imgViewWidth;
-    } else {
-        CGFloat imgViewHeight = imgSize.height * scaleX;
-        pinchScrollView.maximumZoomScale = CGRectGetHeight(self.view.bounds)/imgViewHeight;
+        imageView.clipsToBounds  = YES;
+        imageView.contentMode = UIViewContentModeScaleAspectFit;
+        imageView.contentScaleFactor = [[UIScreen mainScreen] scale];
+        imageView.backgroundColor = [UIColor clearColor];
+        imageView.tag = 1000;
+        [pinchScrollView addSubview:imageView];
+        
+        CGSize imgSize = [imageView.image size];
+        CGFloat scaleX = CGRectGetWidth(self.view.bounds)/imgSize.width;
+        CGFloat scaleY = CGRectGetHeight(self.view.bounds)/imgSize.height;
+        if (scaleX > scaleY) {
+            CGFloat imgViewWidth = imgSize.width * scaleY;
+            pinchScrollView.maximumZoomScale = CGRectGetWidth(self.view.bounds)/imgViewWidth;
+        } else {
+            CGFloat imgViewHeight = imgSize.height * scaleX;
+            pinchScrollView.maximumZoomScale = CGRectGetHeight(self.view.bounds)/imgViewHeight;
+        }
     }
     
     return pinchScrollView;
 }
-#pragma mark LBReusableScrollViewDelegate UIScrollViewDelegate
+#pragma mark UIScrollViewDelegate
 - (UIView *)viewForZoomingInScrollView:(UIScrollView *)scrollView
 {
     return [scrollView viewWithTag:1000];

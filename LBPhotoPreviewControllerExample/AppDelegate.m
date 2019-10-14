@@ -26,7 +26,7 @@
     
     LBPhotoPreviewController *photoPreviewC = [[LBPhotoPreviewController alloc] init];
     photoPreviewC.imageObjectArray = @[imag1,imag2,urlImag,imag3];
-    photoPreviewC.previewScrollView.currentPage = 1;
+//    photoPreviewC.previewScrollView.currentPage = 1;
     
     self.window.rootViewController = [[UINavigationController alloc] initWithRootViewController:photoPreviewC];
     

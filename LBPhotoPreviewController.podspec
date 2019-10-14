@@ -1,6 +1,6 @@
 Pod::Spec.new do |spec|
   spec.name         = "LBPhotoPreviewController"
-  spec.version      = "0.0.2"
+  spec.version      = "0.0.3"
   spec.summary      = "支持本地图片和网络图片的图片浏览器。"
   spec.description  = "一个既支持本地图片也支持网络图片，代码极简单，极易集成的图片浏览器。。"
   spec.homepage     = "https://github.com/A1129434577/LBPhotoPreviewController"

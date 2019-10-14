@@ -48,7 +48,7 @@
         previewScrollView.pagingEnabled = YES;
         previewScrollView.lb_delegate = self;
         _previewScrollView = previewScrollView;
-        
+        self.view.backgroundColor = [UIColor blackColor];
     }
     return self;
 }
@@ -72,7 +72,6 @@
 
 - (void)viewDidLoad {
     [super viewDidLoad];
-    self.view.backgroundColor = [UIColor blackColor];
 
     CGFloat safeAreaInsetsTop = 20;
     if (@available(iOS 11.0, *)) {

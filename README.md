@@ -10,4 +10,4 @@ LBPhotoPreviewController *photoPreviewC = [[LBPhotoPreviewController alloc] init
 photoPreviewC.imageObjectArray = @[imag1,imag2,urlImag,imag3];
 photoPreviewC.previewScrollView.currentPage = 1;
 ```
-![]()
+![](https://github.com/A1129434577/LBPhotoPreviewController/blob/master/LBPhotoPreviewController.png?raw=true)

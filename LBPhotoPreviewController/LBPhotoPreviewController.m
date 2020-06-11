@@ -9,6 +9,63 @@
 #import "LBPhotoPreviewController.h"
 #import "UIImageView+WebCache.h"
 
+#define LB_KEY_WINDOW \
+({\
+id<UIApplicationDelegate> delegate = [UIApplication sharedApplication].delegate;\
+UIWindow *keyWindow = [delegate respondsToSelector:@selector(window)]?delegate.window:nil;\
+if (keyWindow == nil) {\
+    if (@available(ios 13, *)) {\
+        for (UIWindowScene* windowScene in [UIApplication sharedApplication].connectedScenes){\
+            if (windowScene.activationState == UISceneActivationStateForegroundActive){\
+                UIWindow *window = windowScene.windows.firstObject;\
+                if (window) {\
+                    keyWindow = window;\
+                }\
+                break;\
+            }\
+        }\
+        if (keyWindow == nil) {\
+            keyWindow = [UIApplication sharedApplication].keyWindow;\
+        }\
+    }else{\
+        keyWindow = [UIApplication sharedApplication].keyWindow;\
+    }\
+}\
+keyWindow;\
+})
+
+#define LB_SAFE_AREA_TOP_HEIGHT(ViewController) \
+({\
+        CGFloat safeAreaInsetsTop = 0;\
+        if (@available(ios 13, *)) {\
+            safeAreaInsetsTop = CGRectGetMaxY(LB_KEY_WINDOW.windowScene.statusBarManager.statusBarFrame);\
+        }else{\
+            safeAreaInsetsTop = CGRectGetMaxY([UIApplication sharedApplication].statusBarFrame);\
+        }\
+        if(ViewController.navigationController && !ViewController.navigationController.navigationBar.hidden && !ViewController.navigationController.navigationBarHidden){\
+            safeAreaInsetsTop += CGRectGetHeight(ViewController.navigationController.navigationBar.frame);\
+        }\
+        safeAreaInsetsTop;\
+})
+
+
+#define LB_SAFE_AREA_BOTTOM_HEIGHT(ViewController) \
+({\
+CGFloat safeAreaInsetsBottom = 0;\
+if (@available(iOS 11.0, *)) {\
+    safeAreaInsetsBottom = LB_KEY_WINDOW.safeAreaInsets.bottom;\
+}\
+if(ViewController.tabBarController && !ViewController.tabBarController.tabBar.hidden && !ViewController.hidesBottomBarWhenPushed){\
+    safeAreaInsetsBottom  += CGRectGetHeight(ViewController.tabBarController.tabBar.frame);\
+}\
+safeAreaInsetsBottom;\
+})
+
+#define LB_SAFE_AREA_VERTICAL_HEIGHT(ViewController) \
+({\
+LB_SAFE_AREA_TOP_HEIGHT(ViewController) + LB_SAFE_AREA_BOTTOM_HEIGHT(ViewController);\
+})
+
 @implementation LBImageObject
 + (instancetype)objectWithImage:(UIImage *)image{
     LBImageObject *object = [[self alloc] init];
@@ -73,37 +130,18 @@
 - (void)viewDidLoad {
     [super viewDidLoad];
 
-    CGFloat safeAreaInsetsTop = 20;
-    if (@available(iOS 11.0, *)) {
-        safeAreaInsetsTop = [[[UIApplication sharedApplication] delegate] window].safeAreaInsets.top;
-        if(self.navigationController && !self.navigationController.navigationBar.hidden){
-            safeAreaInsetsTop += CGRectGetHeight(self.navigationController.navigationBar.frame);
-        }
-    }else if(self.navigationController && !self.navigationController.navigationBar.hidden){
-        safeAreaInsetsTop = CGRectGetMaxY(self.navigationController.navigationBar.frame);
-    }
-    
-    CGFloat safeAreaInsetsBottom = 0;
-    if (@available(iOS 11.0, *)) {
-        safeAreaInsetsBottom = [[[UIApplication sharedApplication] delegate] window].safeAreaInsets.bottom;
-        if(self.tabBarController && !self.tabBarController.tabBar.hidden && !self.hidesBottomBarWhenPushed){
-            safeAreaInsetsBottom  = CGRectGetHeight(self.tabBarController.tabBar.frame);
-        }
-    }else if(self.tabBarController && !self.tabBarController.tabBar.hidden && !self.hidesBottomBarWhenPushed){
-        safeAreaInsetsBottom = CGRectGetHeight(self.tabBarController.tabBar.frame);
-    }
     self.previewScrollView.frame = self.view.bounds;
     [self.view addSubview:_previewScrollView];
     
     
-    UIView *titleView = [[UIView alloc] initWithFrame:CGRectMake(0, 0, CGRectGetWidth(self.view.bounds), 44+safeAreaInsetsTop)];
+    UIView *titleView = [[UIView alloc] initWithFrame:CGRectMake(0, 0, CGRectGetWidth(self.view.bounds), 44+LB_SAFE_AREA_TOP_HEIGHT(self))];
     titleView.backgroundColor = [UIColor colorWithRed:0 green:0 blue:0 alpha:0.6];
     [self.view addSubview:titleView];
     _navigationBarView = titleView;
     
     // 返回按钮
     UIImage * image = [UIImage imageNamed:@"lbphoto_back"];
-    UIButton * backBtn = [[UIButton alloc] initWithFrame:CGRectMake(10, safeAreaInsetsTop, 44, 44)];
+    UIButton * backBtn = [[UIButton alloc] initWithFrame:CGRectMake(10, LB_SAFE_AREA_TOP_HEIGHT(self), 44, 44)];
     [backBtn setImage:image forState:UIControlStateNormal];
     [backBtn addTarget:self action:@selector(backAction) forControlEvents:UIControlEventTouchUpInside];
     [titleView addSubview:backBtn];

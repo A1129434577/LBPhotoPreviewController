@@ -139,8 +139,9 @@ LB_SAFE_AREA_TOP_HEIGHT(ViewController) + LB_SAFE_AREA_BOTTOM_HEIGHT(ViewControl
     [self.view addSubview:titleView];
     _navigationBarView = titleView;
     
+    NSBundle *bundle = [self LBPhotoPreviewControllerBundle];
     // 返回按钮
-    UIImage * image = [UIImage imageNamed:@"lbphoto_back"];
+    UIImage * image = [UIImage imageWithContentsOfFile:[bundle pathForResource:@"lbphoto_back@2x" ofType:@"png"]];
     UIButton * backBtn = [[UIButton alloc] initWithFrame:CGRectMake(10, LB_SAFE_AREA_TOP_HEIGHT(self), 44, 44)];
     [backBtn setImage:image forState:UIControlStateNormal];
     [backBtn addTarget:self action:@selector(backAction) forControlEvents:UIControlEventTouchUpInside];
@@ -156,7 +157,7 @@ LB_SAFE_AREA_TOP_HEIGHT(ViewController) + LB_SAFE_AREA_BOTTOM_HEIGHT(ViewControl
     _titleLabel = titleLabel;
     
     // 删除按钮
-    image = [UIImage imageNamed:@"lbphoto_delete"];
+    image = [UIImage imageWithContentsOfFile:[bundle pathForResource:@"lbphoto_delete@2x" ofType:@"png"]];
     UIButton * deleteBtn = [[UIButton alloc]initWithFrame:CGRectMake(CGRectGetWidth(_navigationBarView.frame)-CGRectGetHeight(backBtn.frame), CGRectGetMinY(backBtn.frame), CGRectGetHeight(backBtn.frame), CGRectGetHeight(backBtn.frame))];
     [deleteBtn setImage:image forState:UIControlStateNormal];
     [deleteBtn setImageEdgeInsets:UIEdgeInsetsMake((CGRectGetHeight([UINavigationBar appearance].bounds)-image.size.height)/2, 0, (CGRectGetHeight([UINavigationBar appearance].bounds)-image.size.height)/2, 0)];
@@ -299,6 +300,28 @@ LB_SAFE_AREA_TOP_HEIGHT(ViewController) + LB_SAFE_AREA_BOTTOM_HEIGHT(ViewControl
     [UIView animateWithDuration:0.35 animations:^{
         pinchScrollView.zoomScale = zoomScale;
     }];
+}
+
+- (NSBundle *)LBPhotoPreviewControllerBundle{
+    NSString *bundleName = NSStringFromClass(self.class);
+    
+    if ([bundleName containsString:@".bundle"]) {
+        bundleName = [bundleName componentsSeparatedByString:@".bundle"].firstObject;
+    }
+    //没使用framwork的情况下
+    NSURL *associateBundleURL = [[NSBundle mainBundle] URLForResource:bundleName withExtension:@"bundle"];
+    //使用framework形式
+    if (!associateBundleURL) {
+        associateBundleURL = [[NSBundle mainBundle] URLForResource:@"Frameworks" withExtension:nil];
+        associateBundleURL = [associateBundleURL URLByAppendingPathComponent:bundleName];
+        associateBundleURL = [associateBundleURL URLByAppendingPathExtension:@"framework"];
+        NSBundle *associateBunle = [NSBundle bundleWithURL:associateBundleURL];
+        associateBundleURL = [associateBunle URLForResource:bundleName withExtension:@"bundle"];
+    }
+    
+    NSAssert(associateBundleURL, @"取不到关联bundle");
+    //生产环境直接返回空
+    return associateBundleURL?[NSBundle bundleWithURL:associateBundleURL]:nil;
 }
 
 -(void)dealloc{

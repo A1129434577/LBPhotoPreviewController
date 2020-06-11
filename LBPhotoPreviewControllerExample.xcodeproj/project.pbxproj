@@ -7,19 +7,19 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		4055A83A2492057500C3B569 /* LBPhotoPreviewController.bundle in Resources */ = {isa = PBXBuildFile; fileRef = 4055A8392492057500C3B569 /* LBPhotoPreviewController.bundle */; };
 		40E2103B233DAE3F00BD7929 /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 40E2103A233DAE3F00BD7929 /* AppDelegate.m */; };
 		40E21046233DAE4100BD7929 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 40E21045233DAE4100BD7929 /* Assets.xcassets */; };
 		40E21049233DAE4100BD7929 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 40E21047233DAE4100BD7929 /* LaunchScreen.storyboard */; };
 		40E2104C233DAE4100BD7929 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 40E2104B233DAE4100BD7929 /* main.m */; };
 		40E21053233DB0EC00BD7929 /* LBPhotoPreviewController.podspec in Resources */ = {isa = PBXBuildFile; fileRef = 40E21052233DB0EC00BD7929 /* LBPhotoPreviewController.podspec */; };
 		40E21059233DB0F900BD7929 /* LBPhotoPreviewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 40E21056233DB0F800BD7929 /* LBPhotoPreviewController.m */; };
-		40E2105A233DB0F900BD7929 /* lbphoto_back@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 40E21057233DB0F800BD7929 /* lbphoto_back@2x.png */; };
-		40E2105B233DB0F900BD7929 /* lbphoto_delete@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 40E21058233DB0F800BD7929 /* lbphoto_delete@2x.png */; };
 		CE3C02494D1DC2CD935F5636 /* libPods-LBPhotoPreviewControllerExample.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 4989E37E982267485EAD7FAB /* libPods-LBPhotoPreviewControllerExample.a */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
 		1E2E200165F9A41DA9891D73 /* Pods-LBPhotoPreviewControllerExample.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-LBPhotoPreviewControllerExample.debug.xcconfig"; path = "Target Support Files/Pods-LBPhotoPreviewControllerExample/Pods-LBPhotoPreviewControllerExample.debug.xcconfig"; sourceTree = "<group>"; };
+		4055A8392492057500C3B569 /* LBPhotoPreviewController.bundle */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.plug-in"; path = LBPhotoPreviewController.bundle; sourceTree = "<group>"; };
 		40E21036233DAE3F00BD7929 /* LBPhotoPreviewControllerExample.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = LBPhotoPreviewControllerExample.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		40E21039233DAE3F00BD7929 /* AppDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AppDelegate.h; sourceTree = "<group>"; };
 		40E2103A233DAE3F00BD7929 /* AppDelegate.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = AppDelegate.m; sourceTree = "<group>"; };
@@ -30,8 +30,6 @@
 		40E21052233DB0EC00BD7929 /* LBPhotoPreviewController.podspec */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = LBPhotoPreviewController.podspec; sourceTree = "<group>"; };
 		40E21055233DB0F800BD7929 /* LBPhotoPreviewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LBPhotoPreviewController.h; sourceTree = "<group>"; };
 		40E21056233DB0F800BD7929 /* LBPhotoPreviewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = LBPhotoPreviewController.m; sourceTree = "<group>"; };
-		40E21057233DB0F800BD7929 /* lbphoto_back@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "lbphoto_back@2x.png"; sourceTree = "<group>"; };
-		40E21058233DB0F800BD7929 /* lbphoto_delete@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "lbphoto_delete@2x.png"; sourceTree = "<group>"; };
 		4989E37E982267485EAD7FAB /* libPods-LBPhotoPreviewControllerExample.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-LBPhotoPreviewControllerExample.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		9A14284773E6BC1A64D4C29A /* Pods-LBPhotoPreviewControllerExample.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-LBPhotoPreviewControllerExample.release.xcconfig"; path = "Target Support Files/Pods-LBPhotoPreviewControllerExample/Pods-LBPhotoPreviewControllerExample.release.xcconfig"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -86,8 +84,7 @@
 			children = (
 				40E21055233DB0F800BD7929 /* LBPhotoPreviewController.h */,
 				40E21056233DB0F800BD7929 /* LBPhotoPreviewController.m */,
-				40E21057233DB0F800BD7929 /* lbphoto_back@2x.png */,
-				40E21058233DB0F800BD7929 /* lbphoto_delete@2x.png */,
+				4055A8392492057500C3B569 /* LBPhotoPreviewController.bundle */,
 			);
 			path = LBPhotoPreviewController;
 			sourceTree = SOURCE_ROOT;
@@ -167,10 +164,9 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				40E2105A233DB0F900BD7929 /* lbphoto_back@2x.png in Resources */,
-				40E2105B233DB0F900BD7929 /* lbphoto_delete@2x.png in Resources */,
 				40E21049233DAE4100BD7929 /* LaunchScreen.storyboard in Resources */,
 				40E21046233DAE4100BD7929 /* Assets.xcassets in Resources */,
+				4055A83A2492057500C3B569 /* LBPhotoPreviewController.bundle in Resources */,
 				40E21053233DB0EC00BD7929 /* LBPhotoPreviewController.podspec in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

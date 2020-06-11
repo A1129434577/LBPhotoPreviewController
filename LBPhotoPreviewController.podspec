@@ -12,7 +12,7 @@ Pod::Spec.new do |spec|
   spec.dependency     "SDWebImage"
   spec.dependency     "LBReusableScrollView"
   spec.source_files = "LBPhotoPreviewController/**/*.{h,m}"
-  spec.resource      = "LBPhotoPreviewController/**/*.png"
+  spec.resource      = "LBPhotoPreviewController/**/*.bundle"
   spec.requires_arc = true
 end
 #--use-libraries

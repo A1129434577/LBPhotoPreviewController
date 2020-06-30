@@ -302,26 +302,13 @@ LB_SAFE_AREA_TOP_HEIGHT(ViewController) + LB_SAFE_AREA_BOTTOM_HEIGHT(ViewControl
     }];
 }
 
-- (NSBundle *)LBPhotoPreviewControllerBundle{
-    NSString *bundleName = NSStringFromClass(self.class);
-    
-    if ([bundleName containsString:@".bundle"]) {
-        bundleName = [bundleName componentsSeparatedByString:@".bundle"].firstObject;
+- (NSBundle *)LBPhotoPreviewControllerBundle
+{
+    static NSBundle *progressHUDBundle = nil;
+    if (progressHUDBundle == nil) {
+        progressHUDBundle = [NSBundle bundleWithPath:[[NSBundle bundleForClass:[self class]] pathForResource:@"LBPhotoPreviewController" ofType:@"bundle"]];
     }
-    //没使用framwork的情况下
-    NSURL *associateBundleURL = [[NSBundle mainBundle] URLForResource:bundleName withExtension:@"bundle"];
-    //使用framework形式
-    if (!associateBundleURL) {
-        associateBundleURL = [[NSBundle mainBundle] URLForResource:@"Frameworks" withExtension:nil];
-        associateBundleURL = [associateBundleURL URLByAppendingPathComponent:bundleName];
-        associateBundleURL = [associateBundleURL URLByAppendingPathExtension:@"framework"];
-        NSBundle *associateBunle = [NSBundle bundleWithURL:associateBundleURL];
-        associateBundleURL = [associateBunle URLForResource:bundleName withExtension:@"bundle"];
-    }
-    
-    NSAssert(associateBundleURL, @"取不到关联bundle");
-    //生产环境直接返回空
-    return associateBundleURL?[NSBundle bundleWithURL:associateBundleURL]:nil;
+    return progressHUDBundle;
 }
 
 -(void)dealloc{

@@ -129,10 +129,12 @@ LB_SAFE_AREA_TOP_HEIGHT(ViewController) + LB_SAFE_AREA_BOTTOM_HEIGHT(ViewControl
 
 - (void)viewDidLoad {
     [super viewDidLoad];
-
+    if (@available(*, iOS 11.0)) {
+        self.automaticallyAdjustsScrollViewInsets = NO;
+    }
+    
     self.previewScrollView.frame = self.view.bounds;
     [self.view addSubview:_previewScrollView];
-    
     
     UIView *titleView = [[UIView alloc] initWithFrame:CGRectMake(0, 0, CGRectGetWidth(self.view.bounds), 44+LB_SAFE_AREA_TOP_HEIGHT(self))];
     titleView.backgroundColor = [UIColor colorWithRed:0 green:0 blue:0 alpha:0.6];

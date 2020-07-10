@@ -1,5 +1,5 @@
 PODS:
-  - LBReusableScrollView (0.0.3)
+  - LBReusableScrollView (0.0.4)
   - SDWebImage (5.2.3):
     - SDWebImage/Core (= 5.2.3)
   - SDWebImage/Core (5.2.3)
@@ -14,9 +14,9 @@ SPEC REPOS:
     - SDWebImage
 
 SPEC CHECKSUMS:
-  LBReusableScrollView: 8ef7d1ec58d6f17f964c685ee173d2c039f04569
+  LBReusableScrollView: add4c2ab10695eb8d00eee80866e85289449a573
   SDWebImage: 46a7f73228f84ce80990c786e4372cf4db5875ce
 
 PODFILE CHECKSUM: a57789c8c13d30a8282219a422d52b20c6d243a5
 
-COCOAPODS: 1.8.3
+COCOAPODS: 1.9.3

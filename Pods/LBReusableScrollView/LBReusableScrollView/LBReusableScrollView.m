@@ -23,7 +23,9 @@
     self = [super initWithFrame:frame];
     if (self) {
         _pageViews = [NSMutableArray array];
-        self.contentInsetAdjustmentBehavior = UIScrollViewContentInsetAdjustmentNever;
+        if (@available(iOS 11.0, *)) {
+            self.contentInsetAdjustmentBehavior = UIScrollViewContentInsetAdjustmentNever;
+        }
     }
     return self;
 }

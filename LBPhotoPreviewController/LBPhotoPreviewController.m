@@ -8,55 +8,57 @@
 
 #import "LBPhotoPreviewController.h"
 #import "UIImageView+WebCache.h"
+#import <Photos/Photos.h>
 
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdeprecated-declarations"
 #define LB_KEY_WINDOW \
 ({\
 id<UIApplicationDelegate> delegate = [UIApplication sharedApplication].delegate;\
 UIWindow *keyWindow = [delegate respondsToSelector:@selector(window)]?delegate.window:nil;\
 if (keyWindow == nil) {\
-    if (@available(ios 13, *)) {\
-        for (UIWindowScene* windowScene in [UIApplication sharedApplication].connectedScenes){\
-            if (windowScene.activationState == UISceneActivationStateForegroundActive){\
-                UIWindow *window = windowScene.windows.firstObject;\
-                if (window) {\
-                    keyWindow = window;\
-                }\
-                break;\
-            }\
-        }\
-        if (keyWindow == nil) {\
-            keyWindow = [UIApplication sharedApplication].keyWindow;\
-        }\
-    }else{\
-        keyWindow = [UIApplication sharedApplication].keyWindow;\
-    }\
+if (@available(ios 13, *)) {\
+for (UIWindowScene* windowScene in [UIApplication sharedApplication].connectedScenes){\
+if (windowScene.activationState == UISceneActivationStateForegroundActive){\
+UIWindow *window = windowScene.windows.firstObject;\
+if (window) {\
+keyWindow = window;\
+}\
+break;\
+}\
+}\
+if (keyWindow == nil) {\
+keyWindow = [UIApplication sharedApplication].keyWindow;\
+}\
+}else{\
+keyWindow = [UIApplication sharedApplication].keyWindow;\
+}\
 }\
 keyWindow;\
 })
 
 #define LB_SAFE_AREA_TOP_HEIGHT(ViewController) \
 ({\
-        CGFloat safeAreaInsetsTop = 0;\
-        if (@available(ios 13, *)) {\
-            safeAreaInsetsTop = CGRectGetMaxY(LB_KEY_WINDOW.windowScene.statusBarManager.statusBarFrame);\
-        }else{\
-            safeAreaInsetsTop = CGRectGetMaxY([UIApplication sharedApplication].statusBarFrame);\
-        }\
-        if(ViewController.navigationController && !ViewController.navigationController.navigationBar.hidden && !ViewController.navigationController.navigationBarHidden){\
-            safeAreaInsetsTop += CGRectGetHeight(ViewController.navigationController.navigationBar.frame);\
-        }\
-        safeAreaInsetsTop;\
+CGFloat safeAreaInsetsTop = 0;\
+if (@available(ios 13, *)) {\
+safeAreaInsetsTop = CGRectGetMaxY(LB_KEY_WINDOW.windowScene.statusBarManager.statusBarFrame);\
+}else{\
+safeAreaInsetsTop = CGRectGetMaxY([UIApplication sharedApplication].statusBarFrame);\
+}\
+if(ViewController.navigationController && !ViewController.navigationController.navigationBar.hidden && !ViewController.navigationController.navigationBarHidden){\
+safeAreaInsetsTop += CGRectGetHeight(ViewController.navigationController.navigationBar.frame);\
+}\
+safeAreaInsetsTop;\
 })
-
 
 #define LB_SAFE_AREA_BOTTOM_HEIGHT(ViewController) \
 ({\
 CGFloat safeAreaInsetsBottom = 0;\
 if (@available(iOS 11.0, *)) {\
-    safeAreaInsetsBottom = LB_KEY_WINDOW.safeAreaInsets.bottom;\
+safeAreaInsetsBottom = LB_KEY_WINDOW.safeAreaInsets.bottom;\
 }\
 if(ViewController.tabBarController && !ViewController.tabBarController.tabBar.hidden && !ViewController.hidesBottomBarWhenPushed){\
-    safeAreaInsetsBottom  += CGRectGetHeight(ViewController.tabBarController.tabBar.frame);\
+safeAreaInsetsBottom  += CGRectGetHeight(ViewController.tabBarController.tabBar.frame);\
 }\
 safeAreaInsetsBottom;\
 })
@@ -65,6 +67,7 @@ safeAreaInsetsBottom;\
 ({\
 LB_SAFE_AREA_TOP_HEIGHT(ViewController) + LB_SAFE_AREA_BOTTOM_HEIGHT(ViewController);\
 })
+
 
 @implementation LBImageObject
 + (instancetype)objectWithImage:(UIImage *)image{
@@ -79,19 +82,48 @@ LB_SAFE_AREA_TOP_HEIGHT(ViewController) + LB_SAFE_AREA_BOTTOM_HEIGHT(ViewControl
 }
 @end
 
+typedef enum {
+    LBPhotoPreviewAnimationTypePresent,
+    LBPhotoPreviewAnimationTypeDismiss,
+} LBPhotoPreviewTransitionsAnimationType;
+@interface LBPhotoPreviewTransitioning : NSObject<UIViewControllerTransitioningDelegate,UIViewControllerAnimatedTransitioning>
+@property (nonatomic,assign)LBPhotoPreviewTransitionsAnimationType type;
+@end
+#define VIEW_TAG 666666
+#define LBPhotoPreviewImageViewTag VIEW_TAG-1
 @interface LBPhotoPreviewController ()<LBReusableScrollViewDelegate>
+@property (nonatomic,weak)UIView *sourceView;
+@property (nonatomic,strong)LBPhotoPreviewTransitioning *transitioning;
+
 @property (nonatomic,assign)BOOL navigationBarIsHidden;
 @property (nonatomic, strong)NSMutableArray<NSObject<LBImageProtocol> *> * privateImageObjects;
 
-@property (nonatomic, strong) UIView  *navigationBarView;
+@property (nonatomic, strong) UIView  *titleView;
 @property (nonatomic, strong) UILabel *titleLabel;
+
+@property (nonatomic , assign)CGPoint startPoint;
+@property (nonatomic , assign)CGFloat zoomScale;
+@property (nonatomic , assign)CGPoint startCenter;
+
 @end
 
 @implementation LBPhotoPreviewController
 - (instancetype)init
 {
+    return [self initWithSourceView:nil];
+}
+- (instancetype)initWithSourceView:(UIView *)sourceView
+{
     self = [super init];
     if (self) {
+        self.modalPresentationStyle = UIModalPresentationCustom;
+        
+        if (sourceView) {
+            self.sourceView = sourceView;
+            _transitioning = [[LBPhotoPreviewTransitioning alloc] init];
+            self.transitioningDelegate = _transitioning;
+        }
+        
         [self addObserver:self forKeyPath:NSStringFromSelector(@selector(privateImageObjects)) options:NSKeyValueObservingOptionNew context:nil];
         
         LBReusableScrollView *previewScrollView = [[LBReusableScrollView alloc] init];
@@ -104,8 +136,12 @@ LB_SAFE_AREA_TOP_HEIGHT(ViewController) + LB_SAFE_AREA_BOTTOM_HEIGHT(ViewControl
         previewScrollView.backgroundColor = [UIColor clearColor];
         previewScrollView.pagingEnabled = YES;
         previewScrollView.lb_delegate = self;
-        _previewScrollView = previewScrollView;
-        self.view.backgroundColor = [UIColor blackColor];
+        _previewScrollView = previewScrollView;;
+        
+        
+        UIButton *rightButton = [[UIButton alloc] init];
+        _rightButton = rightButton;
+        self.rightButtonStyle = LBPhotoPreviewrRightDeleteButtonStyle;
     }
     return self;
 }
@@ -132,6 +168,10 @@ LB_SAFE_AREA_TOP_HEIGHT(ViewController) + LB_SAFE_AREA_BOTTOM_HEIGHT(ViewControl
     if (@available(*, iOS 11.0)) {
         self.automaticallyAdjustsScrollViewInsets = NO;
     }
+    self.view.backgroundColor = [UIColor blackColor];
+    
+    UIPanGestureRecognizer *panGesture = [[UIPanGestureRecognizer alloc] initWithTarget:self action:@selector(panGestureAction:)];
+    [self.view addGestureRecognizer:panGesture];
     
     self.previewScrollView.frame = self.view.bounds;
     [self.view addSubview:_previewScrollView];
@@ -139,7 +179,7 @@ LB_SAFE_AREA_TOP_HEIGHT(ViewController) + LB_SAFE_AREA_BOTTOM_HEIGHT(ViewControl
     UIView *titleView = [[UIView alloc] initWithFrame:CGRectMake(0, 0, CGRectGetWidth(self.view.bounds), 44+LB_SAFE_AREA_TOP_HEIGHT(self))];
     titleView.backgroundColor = [UIColor colorWithRed:0 green:0 blue:0 alpha:0.6];
     [self.view addSubview:titleView];
-    _navigationBarView = titleView;
+    _titleView = titleView;
     
     NSBundle *bundle = [self LBPhotoPreviewControllerBundle];
     // 返回按钮
@@ -149,29 +189,51 @@ LB_SAFE_AREA_TOP_HEIGHT(ViewController) + LB_SAFE_AREA_BOTTOM_HEIGHT(ViewControl
     [backBtn addTarget:self action:@selector(backAction) forControlEvents:UIControlEventTouchUpInside];
     [titleView addSubview:backBtn];
     
-    
     // 顺序Label
-    UILabel *titleLabel = [[UILabel alloc] initWithFrame:CGRectMake((CGRectGetWidth(_navigationBarView.frame)-200)/2, CGRectGetMinY(backBtn.frame), 200, CGRectGetHeight(backBtn.bounds))];
+    UILabel *titleLabel = [[UILabel alloc] initWithFrame:CGRectMake((CGRectGetWidth(_titleView.frame)-200)/2, CGRectGetMinY(backBtn.frame), 200, CGRectGetHeight(backBtn.bounds))];
     titleLabel.font = [UIFont boldSystemFontOfSize:19.0];
     titleLabel.textAlignment = NSTextAlignmentCenter;
     titleLabel.textColor = [UIColor whiteColor];
     [titleView addSubview:titleLabel];
     _titleLabel = titleLabel;
     
-    // 删除按钮
-    image = [UIImage imageWithContentsOfFile:[bundle pathForResource:@"lbphoto_delete@2x" ofType:@"png"]];
-    UIButton * deleteBtn = [[UIButton alloc]initWithFrame:CGRectMake(CGRectGetWidth(_navigationBarView.frame)-CGRectGetHeight(backBtn.frame), CGRectGetMinY(backBtn.frame), CGRectGetHeight(backBtn.frame), CGRectGetHeight(backBtn.frame))];
-    [deleteBtn setImage:image forState:UIControlStateNormal];
-    [deleteBtn setImageEdgeInsets:UIEdgeInsetsMake((CGRectGetHeight([UINavigationBar appearance].bounds)-image.size.height)/2, 0, (CGRectGetHeight([UINavigationBar appearance].bounds)-image.size.height)/2, 0)];
-    [deleteBtn addTarget:self action:@selector(deleteAction) forControlEvents:UIControlEventTouchUpInside];
-    [titleView addSubview:deleteBtn];
-    _deleteBtn = deleteBtn;
+    
+    // 右边按钮
+    self.rightButton.frame = CGRectMake(CGRectGetWidth(_titleView.frame)-CGRectGetHeight(backBtn.frame), CGRectGetMinY(backBtn.frame), CGRectGetHeight(backBtn.frame), CGRectGetHeight(backBtn.frame));
+    [self.rightButton setImageEdgeInsets:UIEdgeInsetsMake((CGRectGetHeight(self.rightButton.bounds)-image.size.height)/2, 0, (CGRectGetHeight(self.rightButton.bounds)-image.size.height)/2, 0)];
+    [titleView addSubview:self.rightButton];
 }
+#pragma mark setter
 -(void)setImageObjectArray:(NSArray<NSObject<LBImageProtocol> *> *)imageObjectArray{
     _imageObjectArray = imageObjectArray;
     self.privateImageObjects = [NSMutableArray arrayWithArray:imageObjectArray];
 }
+-(void)setRightButtonStyle:(LBPhotoPreviewrRightButtonStyle)rightButtonStyle{
+    _rightButtonStyle = rightButtonStyle;
+    
+    NSBundle *bundle = [self LBPhotoPreviewControllerBundle];
+    switch (rightButtonStyle) {
+        case LBPhotoPreviewrRightDeleteButtonStyle:
+        {
+            UIImage *image = [UIImage imageWithContentsOfFile:[bundle pathForResource:@"lbphoto_delete@2x" ofType:@"png"]];
+            [self.rightButton setImage:image forState:UIControlStateNormal];
+            [self.rightButton addTarget:self action:@selector(deleteAction) forControlEvents:UIControlEventTouchUpInside];
+        }
+            break;
+        case LBPhotoPreviewrRightMoreButtonStyle:
+        {
+            UIImage *image = [UIImage imageWithContentsOfFile:[bundle pathForResource:@"lbphoto_more@2x" ofType:@"png"]];
+            [self.rightButton setImage:image forState:UIControlStateNormal];
+            [self.rightButton addTarget:self action:@selector(moreAction:) forControlEvents:UIControlEventTouchUpInside];
+        }
+            break;
+            
+        default:
+            break;
+    }
+}
 
+#pragma mark KVO
 -(void)observeValueForKeyPath:(NSString *)keyPath ofObject:(id)object change:(NSDictionary<NSKeyValueChangeKey,id> *)change context:(void *)context{
     if ([keyPath isEqualToString:NSStringFromSelector(@selector(privateImageObjects))]) {
         [_previewScrollView reloadData];
@@ -189,6 +251,7 @@ LB_SAFE_AREA_TOP_HEIGHT(ViewController) + LB_SAFE_AREA_BOTTOM_HEIGHT(ViewControl
         NSObject<LBImageProtocol> *image = [self.privateImageObjects objectAtIndex:page];
         // 用于图片的捏合缩放
         pinchScrollView = [[UIScrollView alloc] initWithFrame:CGRectMake(CGRectGetWidth(scrollView.bounds)*page, 0, CGRectGetWidth(scrollView.bounds), CGRectGetHeight(scrollView.bounds))];
+        pinchScrollView.tag = VIEW_TAG+page;
         pinchScrollView.contentSize = CGSizeMake(CGRectGetWidth(scrollView.bounds), CGRectGetHeight(scrollView.bounds));
         pinchScrollView.minimumZoomScale = 1.0;
         pinchScrollView.delegate = self;
@@ -196,15 +259,15 @@ LB_SAFE_AREA_TOP_HEIGHT(ViewController) + LB_SAFE_AREA_BOTTOM_HEIGHT(ViewControl
         pinchScrollView.showsVerticalScrollIndicator = NO;
         pinchScrollView.backgroundColor = [UIColor clearColor];
         // 双击
-        UITapGestureRecognizer * doubleTap = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(doubleTapGestureCallback:)];
+        UITapGestureRecognizer *doubleTap = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(doubleTapGestureCallback:)];
         doubleTap.numberOfTapsRequired = 2;
         [pinchScrollView addGestureRecognizer:doubleTap];
+        
         [scrollView.gestureRecognizers enumerateObjectsUsingBlock:^(__kindof UIGestureRecognizer * _Nonnull obj, NSUInteger idx, BOOL * _Nonnull stop) {
             if ([obj isKindOfClass:UITapGestureRecognizer.self]) {
                 [obj requireGestureRecognizerToFail:doubleTap];
             }
         }];
-        
         
         UIImageView * imageView = [[UIImageView alloc] initWithFrame:pinchScrollView.bounds];
         if (image.image) {
@@ -216,7 +279,7 @@ LB_SAFE_AREA_TOP_HEIGHT(ViewController) + LB_SAFE_AREA_BOTTOM_HEIGHT(ViewControl
         imageView.contentMode = UIViewContentModeScaleAspectFit;
         imageView.contentScaleFactor = [[UIScreen mainScreen] scale];
         imageView.backgroundColor = [UIColor clearColor];
-        imageView.tag = 1000;
+        imageView.tag = LBPhotoPreviewImageViewTag;
         [pinchScrollView addSubview:imageView];
         
         CGSize imgSize = [imageView.image size];
@@ -236,7 +299,7 @@ LB_SAFE_AREA_TOP_HEIGHT(ViewController) + LB_SAFE_AREA_BOTTOM_HEIGHT(ViewControl
 #pragma mark UIScrollViewDelegate
 - (UIView *)viewForZoomingInScrollView:(UIScrollView *)scrollView
 {
-    return [scrollView viewWithTag:1000];
+    return [scrollView viewWithTag:LBPhotoPreviewImageViewTag];
 }
 
 - (void)scrollViewDidEndDecelerating:(UIScrollView *)scrollView
@@ -263,7 +326,7 @@ LB_SAFE_AREA_TOP_HEIGHT(ViewController) + LB_SAFE_AREA_BOTTOM_HEIGHT(ViewControl
     // 移除视图
     NSObject<LBImageProtocol> *image = [self.privateImageObjects objectAtIndex:_previewScrollView.currentPage];
     // block
-    self.assetDeleteHandler?self.assetDeleteHandler(image):NULL;
+    self.rightButtonDeletedHandler?self.rightButtonDeletedHandler(image):NULL;
     
     [[self mutableArrayValueForKey:NSStringFromSelector(@selector(privateImageObjects))] removeObject:image];
     if (_previewScrollView.currentPage-1>=0 && _previewScrollView.currentPage-1<_privateImageObjects.count) {
@@ -271,21 +334,53 @@ LB_SAFE_AREA_TOP_HEIGHT(ViewController) + LB_SAFE_AREA_BOTTOM_HEIGHT(ViewControl
     }
     // 更新索引
     _titleLabel.text = [NSString stringWithFormat:@"%ld/%ld",self.privateImageObjects.count?_previewScrollView.currentPage + 1:0,self.privateImageObjects.count];
-
+    
     // 返回
     if (![self.privateImageObjects count]) {
         [self backAction];
     }
 }
 
+-(void)moreAction:(UIButton *)sender{
+    NSObject<LBImageProtocol> *imageObj = [self.privateImageObjects objectAtIndex:_previewScrollView.currentPage];
+    __weak typeof(self) weakSelf = self;
+    UIAlertController *moreActionSheet = [UIAlertController alertControllerWithTitle:nil message:nil preferredStyle:UIAlertControllerStyleActionSheet];
+    if (sender.currentImage) {
+        [moreActionSheet addAction:[UIAlertAction actionWithTitle:@"保存图片" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
+            [[PHPhotoLibrary sharedPhotoLibrary] performChanges:^{
+                [[PHAssetCreationRequest creationRequestForAsset] addResourceWithType:PHAssetResourceTypePhoto data:UIImagePNGRepresentation(sender.currentImage) options:nil];
+            } completionHandler:^(BOOL success, NSError * _Nullable error) {
+                if (weakSelf.rightButtonMoreHandler) {
+                    weakSelf.rightButtonMoreHandler(imageObj, success, NO, error);
+                }
+            }];
+        }]];
+    }
+    NSString *imageUrl = _imageObjectArray[self.previewScrollView.currentPage].imageUrl.absoluteString;
+    if (imageUrl) {
+        [moreActionSheet addAction:[UIAlertAction actionWithTitle:@"拷贝图片地址" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
+            UIPasteboard * pastboard = [UIPasteboard generalPasteboard];
+            pastboard.string = imageUrl;
+            if (weakSelf.rightButtonMoreHandler) {
+                weakSelf.rightButtonMoreHandler(imageObj, NO, YES, nil);
+            }
+        }]];
+    }
+    [moreActionSheet addAction:[UIAlertAction actionWithTitle:@"取消" style:UIAlertActionStyleCancel handler:^(UIAlertAction * _Nonnull action) {
+        
+    }]];
+    [self presentViewController:moreActionSheet animated:YES completion:nil];
+    
+}
+
 #pragma mark - 手势处理
 - (void)singleTapGestureCallback:(UITapGestureRecognizer *)gesture
 {
     [UIView animateWithDuration:0.2 animations:^{
-        if (CGRectGetMinY(self.navigationBarView.frame) == 0) {
-            self.navigationBarView.frame = CGRectMake(CGRectGetMinX(self.navigationBarView.frame), -CGRectGetHeight(self.navigationBarView.frame), CGRectGetWidth(self.navigationBarView.frame), CGRectGetHeight(self.navigationBarView.frame));
+        if (CGRectGetMinY(self.titleView.frame) == 0) {
+            self.titleView.frame = CGRectMake(CGRectGetMinX(self.titleView.frame), -CGRectGetHeight(self.titleView.frame), CGRectGetWidth(self.titleView.frame), CGRectGetHeight(self.titleView.frame));
         }else{
-            self.navigationBarView.frame = CGRectMake(CGRectGetMinX(self.navigationBarView.frame), 0, CGRectGetWidth(self.navigationBarView.frame), CGRectGetHeight(self.navigationBarView.frame));
+            self.titleView.frame = CGRectMake(CGRectGetMinX(self.titleView.frame), 0, CGRectGetWidth(self.titleView.frame), CGRectGetHeight(self.titleView.frame));
         }
     }];
 }
@@ -304,6 +399,65 @@ LB_SAFE_AREA_TOP_HEIGHT(ViewController) + LB_SAFE_AREA_BOTTOM_HEIGHT(ViewControl
     }];
 }
 
+- (void)panGestureAction:(UIPanGestureRecognizer *)pan {
+    UIScrollView *pinchScrollView = (UIScrollView *)[self.previewScrollView viewWithTag:VIEW_TAG+self.previewScrollView.currentPage];
+    UIImageView *imageView = [pinchScrollView viewWithTag:LBPhotoPreviewImageViewTag];
+    CGPoint location = [pan locationInView:self.view];
+    CGPoint point = [pan translationInView:self.view];
+    switch (pan.state) {
+        case UIGestureRecognizerStateBegan:
+        {
+            _startPoint = location;
+            _zoomScale = pinchScrollView.zoomScale;
+            if (_zoomScale == 0) {
+                _zoomScale = 1;
+            }
+            _startCenter = imageView.center;
+            self.titleView.hidden = NO;
+        }
+            break;
+        case UIGestureRecognizerStateChanged:
+        {
+            if (location.y - _startPoint.y < 0) {
+                return;
+            }
+            double percent = 1 - fabs(point.y) / CGRectGetHeight(self.previewScrollView.frame);// 移动距离 / 整个屏幕
+            double scalePercent = MAX(percent, 0.3);
+            if (location.y - _startPoint.y < 0) {
+                scalePercent = 1.0 * _zoomScale;
+            }else {
+                scalePercent = _zoomScale * scalePercent;
+            }
+            CGAffineTransform scale = CGAffineTransformMakeScale(scalePercent, scalePercent);
+            imageView.transform = scale;
+            imageView.center = CGPointMake(self.startCenter.x + point.x, self.startCenter.y + point.y);
+            self.view.backgroundColor = [[UIColor blackColor] colorWithAlphaComponent:scalePercent/_zoomScale];
+            self.titleView.hidden = YES;
+        }
+            break;
+        case UIGestureRecognizerStateEnded:
+        case UIGestureRecognizerStateCancelled: {
+            if (point.y > 100 ) {
+                [self dismissViewControllerAnimated:YES completion:nil];
+            }else {
+                CGAffineTransform scale = CGAffineTransformMakeScale(_zoomScale , _zoomScale);
+                [UIView animateWithDuration:0.25 animations:^{
+                    imageView.transform = scale;
+                    self.view.backgroundColor = [UIColor blackColor];
+                    imageView.center = self.startCenter;
+                }completion:^(BOOL finished) {
+                    [pinchScrollView layoutSubviews];
+                    self.titleView.hidden = NO;
+                }];
+            }
+        }
+            break;
+            
+        default:
+            break;
+    }
+}
+
 - (NSBundle *)LBPhotoPreviewControllerBundle
 {
     static NSBundle *progressHUDBundle = nil;
@@ -317,3 +471,60 @@ LB_SAFE_AREA_TOP_HEIGHT(ViewController) + LB_SAFE_AREA_BOTTOM_HEIGHT(ViewControl
     [self removeObserver:self forKeyPath:NSStringFromSelector(@selector(privateImageObjects))];
 }
 @end
+
+
+
+@implementation LBPhotoPreviewTransitioning
+
+#pragma mark - UIViewControllerAnimatedTransitioning
+-(void)animateTransition:(id<UIViewControllerContextTransitioning>)transitionContext {
+    UIView *containerView = [transitionContext containerView];
+    
+    if (self.type == LBPhotoPreviewAnimationTypePresent) {
+        //目标控制器
+        LBPhotoPreviewController *toViewController = (LBPhotoPreviewController *)[transitionContext viewControllerForKey:UITransitionContextToViewControllerKey];
+        [containerView addSubview:toViewController.view];
+        
+        CGRect sourceViewFrameInWindow = [LB_KEY_WINDOW convertRect:toViewController.sourceView.frame fromView:toViewController.sourceView.superview];
+        
+        toViewController.view.transform = CGAffineTransformScale(CGAffineTransformIdentity, CGRectGetWidth(sourceViewFrameInWindow)/CGRectGetWidth(toViewController.view.frame), CGRectGetHeight(sourceViewFrameInWindow)/CGRectGetHeight(toViewController.view.frame));
+        toViewController.view.center = CGPointMake(CGRectGetMidX(sourceViewFrameInWindow), CGRectGetMidY(sourceViewFrameInWindow));
+        
+        [UIView animateWithDuration:[self transitionDuration:transitionContext] animations:^{
+            toViewController.view.transform = CGAffineTransformIdentity;
+            toViewController.view.center = LB_KEY_WINDOW.center;
+        } completion:^(BOOL finished) {
+            [transitionContext completeTransition:YES];
+        }];
+    }else if (self.type == LBPhotoPreviewAnimationTypeDismiss){
+        //源控制器
+        LBPhotoPreviewController *fromViewController = (LBPhotoPreviewController *)[transitionContext viewControllerForKey:UITransitionContextFromViewControllerKey];
+        
+        CGRect sourceViewFrameInWindow = [LB_KEY_WINDOW convertRect:fromViewController.sourceView.frame fromView:fromViewController.sourceView.superview];
+        [UIView animateWithDuration:[self transitionDuration:transitionContext] animations:^{
+            fromViewController.view.transform = CGAffineTransformScale(CGAffineTransformIdentity, CGRectGetWidth(sourceViewFrameInWindow)/CGRectGetWidth(fromViewController.view.frame), CGRectGetHeight(sourceViewFrameInWindow)/CGRectGetHeight(fromViewController.view.frame));
+            fromViewController.view.center = CGPointMake(CGRectGetMidX(sourceViewFrameInWindow), CGRectGetMidY(sourceViewFrameInWindow));
+        } completion:^(BOOL finished) {
+            [transitionContext completeTransition:YES];
+        }];
+    }
+    
+}
+
+-(NSTimeInterval)transitionDuration:(id<UIViewControllerContextTransitioning>)transitionContext {
+    return 0.25;
+}
+
+#pragma mark - UIViewControllerTransitioningDelegate
+-(id<UIViewControllerAnimatedTransitioning>)animationControllerForPresentedController:(UIViewController *)presented presentingController:(UIViewController *)presenting sourceController:(UIViewController *)source {
+    self.type = LBPhotoPreviewAnimationTypePresent;
+    return self;
+}
+
+-(id<UIViewControllerAnimatedTransitioning>)animationControllerForDismissedController:(UIViewController *)dismissed {
+    self.type = LBPhotoPreviewAnimationTypeDismiss;
+    return self;
+}
+
+@end
+#pragma clang diagnostic pop

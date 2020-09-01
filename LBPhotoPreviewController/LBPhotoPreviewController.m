@@ -455,7 +455,7 @@ typedef enum {
                 [UIView animateWithDuration:0.25 animations:^{
                     imageView.transform = scale;
                     self.view.backgroundColor = [UIColor blackColor];
-                    self.view.superview.backgroundColor = [UIColor clearColor];
+                    self.view.superview.backgroundColor = [UIColor blackColor];
                     imageView.center = self.startCenter;
                 }completion:^(BOOL finished) {
                     [pinchScrollView layoutSubviews];
@@ -510,13 +510,16 @@ typedef enum {
         }];
     }else if (self.type == LBPhotoPreviewAnimationTypeDismiss){
         containerView.backgroundColor = [UIColor clearColor];
+        
         //源控制器
         LBPhotoPreviewController *fromViewController = (LBPhotoPreviewController *)[transitionContext viewControllerForKey:UITransitionContextFromViewControllerKey];
+        fromViewController.titleView.hidden = YES;
+        fromViewController.view.backgroundColor = [UIColor clearColor];
         
         CGRect sourceViewFrameInWindow = [LB_KEY_WINDOW convertRect:fromViewController.sourceView.frame fromView:fromViewController.sourceView.superview];
         [UIView animateWithDuration:[self transitionDuration:transitionContext] animations:^{
-            fromViewController.view.backgroundColor = [UIColor clearColor];
-            fromViewController.view.transform = CGAffineTransformScale(CGAffineTransformIdentity, CGRectGetWidth(sourceViewFrameInWindow)/CGRectGetWidth(fromViewController.view.frame), CGRectGetHeight(sourceViewFrameInWindow)/CGRectGetHeight(fromViewController.view.frame));
+            
+            fromViewController.view.transform = CGAffineTransformScale(CGAffineTransformIdentity, 0.01, 0.01);
             fromViewController.view.center = CGPointMake(CGRectGetMidX(sourceViewFrameInWindow), CGRectGetMidY(sourceViewFrameInWindow));
         } completion:^(BOOL finished) {
             [transitionContext completeTransition:YES];

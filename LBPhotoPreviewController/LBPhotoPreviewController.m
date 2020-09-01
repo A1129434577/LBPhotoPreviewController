@@ -357,8 +357,8 @@ typedef enum {
             if (success) {
                 imageObj.image = image;
             }
-            if (weakSelf.rightButtonMoreHandler) {
-                weakSelf.rightButtonMoreHandler(imageObj, success, NO, error);
+            if (weakSelf.rightButtonSavePhotoHandler) {
+                weakSelf.rightButtonSavePhotoHandler(imageObj, success, error);
             }
         }];
     }]];
@@ -368,13 +368,13 @@ typedef enum {
             UIPasteboard *pastboard = [UIPasteboard generalPasteboard];
             pastboard.image = image;
             imageObj.image = image;
-            if (weakSelf.rightButtonMoreHandler) {
-                weakSelf.rightButtonMoreHandler(imageObj, NO, YES, nil);
+            if (weakSelf.rightButtonCopyImageHandler) {
+                weakSelf.rightButtonCopyImageHandler(imageObj, YES, nil);
             }
         }else{
             NSError *error = [NSError errorWithDomain:@"LBPhotoPreviewControllerError" code:5000 userInfo:@{NSLocalizedDescriptionKey:@"拷贝图片失败！"}];
-            if (weakSelf.rightButtonMoreHandler) {
-                weakSelf.rightButtonMoreHandler(imageObj, NO, NO, error);
+            if (weakSelf.rightButtonCopyImageHandler) {
+                weakSelf.rightButtonCopyImageHandler(imageObj, NO, error);
             }
         }
         

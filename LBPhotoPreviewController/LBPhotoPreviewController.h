@@ -34,7 +34,8 @@ typedef NS_ENUM(NSUInteger, LBPhotoPreviewrRightButtonStyle) {
 @property (nonatomic,strong,readonly)UIButton *rightButton;//默认删除按钮样式和点击删除功能，可以自定义
 @property (nonatomic, assign) LBPhotoPreviewrRightButtonStyle rightButtonStyle;
 @property (nonatomic, copy) void(^rightButtonDeletedHandler)(NSObject<LBImageProtocol> *imageObject);//如果使用自定义action，此block将无效
-@property (nonatomic, copy) void(^rightButtonMoreHandler)(NSObject<LBImageProtocol> *imageObject,BOOL savePhotoSuccess, BOOL copyImageUrlSuccess,  NSError *_Nullable error);//如果使用自定义action，此block将无效
+@property (nonatomic, copy) void(^rightButtonSavePhotoHandler)(NSObject<LBImageProtocol> *imageObject,BOOL success, NSError *_Nullable error);//如果使用自定义action，此block将无效
+@property (nonatomic, copy) void(^rightButtonCopyImageHandler)(NSObject<LBImageProtocol> *imageObject,BOOL success, NSError *_Nullable error);//如果使用自定义action，此block将无效
 
 /// 初始化
 /// @param sourceView 可以通过设置sourceView改变其推出动画，如果sourceView不为空，推出动画将从sourceView开始，如果sourceView为空，则为系统默认推出动画

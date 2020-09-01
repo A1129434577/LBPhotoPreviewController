@@ -519,7 +519,6 @@ typedef enum {
         
         CGRect sourceViewFrameInWindow = [LB_KEY_WINDOW convertRect:fromViewController.sourceView.frame fromView:fromViewController.sourceView.superview];
         [UIView animateWithDuration:[self transitionDuration:transitionContext] animations:^{
-            
             fromViewController.view.transform = CGAffineTransformScale(CGAffineTransformIdentity, 0.01, 0.01);
             fromViewController.view.center = CGPointMake(CGRectGetMidX(sourceViewFrameInWindow), CGRectGetMidY(sourceViewFrameInWindow));
         } completion:^(BOOL finished) {

@@ -141,7 +141,7 @@ typedef enum {
         
         UIButton *rightButton = [[UIButton alloc] init];
         _rightButton = rightButton;
-        self.rightButtonStyle = LBPhotoPreviewrRightDeleteButtonStyle;
+        self.rightButtonStyle = LBPhotoPreviewrRightMoreButtonStyle;
     }
     return self;
 }
@@ -224,7 +224,7 @@ typedef enum {
         {
             UIImage *image = [UIImage imageWithContentsOfFile:[bundle pathForResource:@"lbphoto_more@2x" ofType:@"png"]];
             [self.rightButton setImage:image forState:UIControlStateNormal];
-            [self.rightButton addTarget:self action:@selector(moreAction:) forControlEvents:UIControlEventTouchUpInside];
+            [self.rightButton addTarget:self action:@selector(moreAction) forControlEvents:UIControlEventTouchUpInside];
         }
             break;
             
@@ -341,34 +341,44 @@ typedef enum {
     }
 }
 
--(void)moreAction:(UIButton *)sender{
+-(void)moreAction{
     NSObject<LBImageProtocol> *imageObj = [self.privateImageObjects objectAtIndex:_previewScrollView.currentPage];
+    UIScrollView *pinchScrollView = (UIScrollView *)[self.previewScrollView viewWithTag:VIEW_TAG+self.previewScrollView.currentPage];
+    UIImageView *imageView = [pinchScrollView viewWithTag:LBPhotoPreviewImageViewTag];
+    
+    
     __weak typeof(self) weakSelf = self;
     UIAlertController *moreActionSheet = [UIAlertController alertControllerWithTitle:nil message:nil preferredStyle:UIAlertControllerStyleActionSheet];
-    if (sender.currentImage) {
-        [moreActionSheet addAction:[UIAlertAction actionWithTitle:@"保存图片" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
-            [[PHPhotoLibrary sharedPhotoLibrary] performChanges:^{
-                [[PHAssetCreationRequest creationRequestForAsset] addResourceWithType:PHAssetResourceTypePhoto data:UIImagePNGRepresentation(sender.currentImage) options:nil];
-            } completionHandler:^(BOOL success, NSError * _Nullable error) {
-                if (weakSelf.rightButtonMoreHandler) {
-                    weakSelf.rightButtonMoreHandler(imageObj, success, NO, error);
-                }
-            }];
-        }]];
-    }
-    NSString *imageUrl = _imageObjectArray[self.previewScrollView.currentPage].imageUrl.absoluteString;
-    if (imageUrl) {
-        [moreActionSheet addAction:[UIAlertAction actionWithTitle:@"拷贝图片地址" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
-            UIPasteboard * pastboard = [UIPasteboard generalPasteboard];
-            pastboard.string = imageUrl;
+    [moreActionSheet addAction:[UIAlertAction actionWithTitle:@"保存图片" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
+        [[PHPhotoLibrary sharedPhotoLibrary] performChanges:^{
+            [[PHAssetCreationRequest creationRequestForAsset] addResourceWithType:PHAssetResourceTypePhoto data:UIImagePNGRepresentation(imageView.image) options:nil];
+        } completionHandler:^(BOOL success, NSError * _Nullable error) {
+            if (success) {
+                imageObj.image = imageView.image;
+            }
+            if (weakSelf.rightButtonMoreHandler) {
+                weakSelf.rightButtonMoreHandler(imageObj, success, NO, error);
+            }
+        }];
+    }]];
+    [moreActionSheet addAction:[UIAlertAction actionWithTitle:@"拷贝图片" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
+        UIImage *image = imageView.image;
+        if (image) {
+            UIPasteboard *pastboard = [UIPasteboard generalPasteboard];
+            pastboard.image = image;
+            imageObj.image = image;
             if (weakSelf.rightButtonMoreHandler) {
                 weakSelf.rightButtonMoreHandler(imageObj, NO, YES, nil);
             }
-        }]];
-    }
-    [moreActionSheet addAction:[UIAlertAction actionWithTitle:@"取消" style:UIAlertActionStyleCancel handler:^(UIAlertAction * _Nonnull action) {
+        }else{
+            NSError *error = [NSError errorWithDomain:@"LBPhotoPreviewControllerError" code:5000 userInfo:@{NSLocalizedDescriptionKey:@"拷贝图片失败！"}];
+            if (weakSelf.rightButtonMoreHandler) {
+                weakSelf.rightButtonMoreHandler(imageObj, NO, NO, error);
+            }
+        }
         
     }]];
+    [moreActionSheet addAction:[UIAlertAction actionWithTitle:@"取消" style:UIAlertActionStyleCancel handler:NULL]];
     [self presentViewController:moreActionSheet animated:YES completion:nil];
     
 }

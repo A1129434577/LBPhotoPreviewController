@@ -350,11 +350,12 @@ typedef enum {
     __weak typeof(self) weakSelf = self;
     UIAlertController *moreActionSheet = [UIAlertController alertControllerWithTitle:nil message:nil preferredStyle:UIAlertControllerStyleActionSheet];
     [moreActionSheet addAction:[UIAlertAction actionWithTitle:@"保存图片" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
+        UIImage *image = imageView.image;
         [[PHPhotoLibrary sharedPhotoLibrary] performChanges:^{
-            [[PHAssetCreationRequest creationRequestForAsset] addResourceWithType:PHAssetResourceTypePhoto data:UIImagePNGRepresentation(imageView.image) options:nil];
+            [[PHAssetCreationRequest creationRequestForAsset] addResourceWithType:PHAssetResourceTypePhoto data:UIImagePNGRepresentation(image) options:nil];
         } completionHandler:^(BOOL success, NSError * _Nullable error) {
             if (success) {
-                imageObj.image = imageView.image;
+                imageObj.image = image;
             }
             if (weakSelf.rightButtonMoreHandler) {
                 weakSelf.rightButtonMoreHandler(imageObj, success, NO, error);

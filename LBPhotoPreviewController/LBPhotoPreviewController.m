@@ -442,6 +442,7 @@ typedef enum {
             imageView.transform = scale;
             imageView.center = CGPointMake(self.startCenter.x + point.x, self.startCenter.y + point.y);
             self.view.backgroundColor = [[UIColor blackColor] colorWithAlphaComponent:scalePercent/_zoomScale];
+            self.view.superview.backgroundColor = [UIColor clearColor];
             self.titleView.hidden = YES;
         }
             break;
@@ -454,6 +455,7 @@ typedef enum {
                 [UIView animateWithDuration:0.25 animations:^{
                     imageView.transform = scale;
                     self.view.backgroundColor = [UIColor blackColor];
+                    self.view.superview.backgroundColor = [UIColor clearColor];
                     imageView.center = self.startCenter;
                 }completion:^(BOOL finished) {
                     [pinchScrollView layoutSubviews];
@@ -507,11 +509,13 @@ typedef enum {
             [transitionContext completeTransition:YES];
         }];
     }else if (self.type == LBPhotoPreviewAnimationTypeDismiss){
+        containerView.backgroundColor = [UIColor clearColor];
         //源控制器
         LBPhotoPreviewController *fromViewController = (LBPhotoPreviewController *)[transitionContext viewControllerForKey:UITransitionContextFromViewControllerKey];
         
         CGRect sourceViewFrameInWindow = [LB_KEY_WINDOW convertRect:fromViewController.sourceView.frame fromView:fromViewController.sourceView.superview];
         [UIView animateWithDuration:[self transitionDuration:transitionContext] animations:^{
+            fromViewController.view.backgroundColor = [UIColor clearColor];
             fromViewController.view.transform = CGAffineTransformScale(CGAffineTransformIdentity, CGRectGetWidth(sourceViewFrameInWindow)/CGRectGetWidth(fromViewController.view.frame), CGRectGetHeight(sourceViewFrameInWindow)/CGRectGetHeight(fromViewController.view.frame));
             fromViewController.view.center = CGPointMake(CGRectGetMidX(sourceViewFrameInWindow), CGRectGetMidY(sourceViewFrameInWindow));
         } completion:^(BOOL finished) {

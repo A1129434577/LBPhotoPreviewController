@@ -108,6 +108,26 @@ typedef enum {
 @end
 
 @implementation LBPhotoPreviewController
+#pragma mark 相册权限
++ (void)checkAndRequestPhotoLibraryAuthComplete:(void(^)(BOOL photoLibraryAvailable, PHAuthorizationStatus authorizationStatus))complete{
+    __block BOOL photoLibraryAvailable = [UIImagePickerController isSourceTypeAvailable:UIImagePickerControllerSourceTypePhotoLibrary];
+    
+    __block PHAuthorizationStatus auth = [PHPhotoLibrary authorizationStatus];
+    
+    if (auth == PHAuthorizationStatusNotDetermined) {
+        [PHPhotoLibrary requestAuthorization:^(PHAuthorizationStatus status) {
+            dispatch_async(dispatch_get_main_queue(), ^{
+                complete?
+                complete(photoLibraryAvailable,status):NULL;
+            });
+        }];
+    }else{
+        dispatch_async(dispatch_get_main_queue(), ^{
+            complete?
+            complete(photoLibraryAvailable,auth):NULL;
+        });
+    }
+}
 - (instancetype)init
 {
     return [self initWithSourceView:nil];
@@ -204,6 +224,9 @@ typedef enum {
     [titleView addSubview:self.rightButton];
 }
 #pragma mark setter
+-(void)setModalInPresentation:(BOOL)modalInPresentation{
+    [super setModalInPresentation:UIModalPresentationCustom];
+}
 -(void)setImageObjectArray:(NSArray<NSObject<LBImageProtocol> *> *)imageObjectArray{
     _imageObjectArray = imageObjectArray;
     self.privateImageObjects = [NSMutableArray arrayWithArray:imageObjectArray];
@@ -350,20 +373,32 @@ typedef enum {
     __weak typeof(self) weakSelf = self;
     UIAlertController *moreActionSheet = [UIAlertController alertControllerWithTitle:nil message:nil preferredStyle:UIAlertControllerStyleActionSheet];
     [moreActionSheet addAction:[UIAlertAction actionWithTitle:@"保存图片" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
-        UIImage *image = imageView.image;
-        [[PHPhotoLibrary sharedPhotoLibrary] performChanges:^{
-            [[PHAssetCreationRequest creationRequestForAsset] addResourceWithType:PHAssetResourceTypePhoto data:UIImagePNGRepresentation(image) options:nil];
-        } completionHandler:^(BOOL success, NSError * _Nullable error) {
-            if (success) {
-                imageObj.image = image;
+        [LBPhotoPreviewController checkAndRequestPhotoLibraryAuthComplete:^(BOOL photoLibraryAvailable, PHAuthorizationStatus authorizationStatus) {
+            if (authorizationStatus == PHAuthorizationStatusAuthorized) {
+                UIImage *image = imageView.image;
+                [[PHPhotoLibrary sharedPhotoLibrary] performChanges:^{
+                    [[PHAssetCreationRequest creationRequestForAsset] addResourceWithType:PHAssetResourceTypePhoto data:UIImagePNGRepresentation(image) options:nil];
+                } completionHandler:^(BOOL success, NSError * _Nullable error) {
+                    if (success) {
+                        imageObj.image = image;
+                    }
+                    dispatch_async(dispatch_get_main_queue(), ^{
+                        if (weakSelf.rightButtonSavePhotoHandler) {
+                            weakSelf.rightButtonSavePhotoHandler(imageObj, success, error);
+                        }
+                    });
+                    
+                }];
+            }else{
+                NSError *error = [NSError errorWithDomain:@"LBPhotoPreviewControllerError" code:5001 userInfo:@{NSLocalizedDescriptionKey:@"相册权限获取失败！"}];
+                dispatch_async(dispatch_get_main_queue(), ^{
+                    if (weakSelf.rightButtonSavePhotoHandler) {
+                        weakSelf.rightButtonSavePhotoHandler(imageObj, NO, error);
+                    }
+                });
             }
-            dispatch_async(dispatch_get_main_queue(), ^{
-                if (weakSelf.rightButtonSavePhotoHandler) {
-                    weakSelf.rightButtonSavePhotoHandler(imageObj, success, error);
-                }
-            });
-            
         }];
+        
     }]];
     [moreActionSheet addAction:[UIAlertAction actionWithTitle:@"拷贝图片" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
         UIImage *image = imageView.image;

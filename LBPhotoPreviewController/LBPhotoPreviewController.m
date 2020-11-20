@@ -517,10 +517,7 @@ typedef enum {
 
 - (NSBundle *)LBPhotoPreviewControllerBundle
 {
-    static NSBundle *progressHUDBundle = nil;
-    if (progressHUDBundle == nil) {
-        progressHUDBundle = [NSBundle bundleWithPath:[[NSBundle bundleForClass:[self class]] pathForResource:@"LBPhotoPreviewController" ofType:@"bundle"]];
-    }
+    NSBundle *progressHUDBundle = [NSBundle bundleWithPath:[[NSBundle bundleForClass:[self class]] pathForResource:@"LBPhotoPreviewController" ofType:@"bundle"]];
     return progressHUDBundle;
 }
 

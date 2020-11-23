@@ -228,6 +228,7 @@ typedef enum {
     [super setModalInPresentation:UIModalPresentationCustom];
 }
 -(void)setImageObjectArray:(NSArray<NSObject<LBImageProtocol> *> *)imageObjectArray{
+    [self loadViewIfNeeded];
     _imageObjectArray = imageObjectArray;
     self.privateImageObjects = [NSMutableArray arrayWithArray:imageObjectArray];
 }

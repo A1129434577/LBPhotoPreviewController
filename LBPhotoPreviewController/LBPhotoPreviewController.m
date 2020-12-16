@@ -258,7 +258,7 @@ typedef enum {
 }
 -(UIView *)sourceView{
     NSInteger currentPage = self.previewScrollView.currentPage;
-    UIView *sourceView = self.sourceViews.firstObject;
+    UIView *sourceView = self.sourceViews.lastObject;
     if (currentPage < self.sourceViews.count) {
         sourceView = self.sourceViews[currentPage];
     }

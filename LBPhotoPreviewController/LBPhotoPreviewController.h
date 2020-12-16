@@ -38,8 +38,8 @@ typedef NS_ENUM(NSUInteger, LBPhotoPreviewrRightButtonStyle) {
 @property (nonatomic, copy) void(^rightButtonCopyImageHandler)(NSObject<LBImageProtocol> *imageObject,BOOL success, NSError *_Nullable error);//如果使用自定义action，此block将无效
 
 /// 初始化
-/// @param sourceView 可以通过设置sourceView改变其推出动画，如果sourceView不为空，推出动画将从sourceView开始，如果sourceView为空，则为系统默认推出动画
--(instancetype)initWithSourceView:(nullable UIView *)sourceView;
+/// @param sourceViews 可以通过设置sourceViews改变其推出动画，如果sourceViews不为空，推出动画将从sourceViews的currentPage开始，如果sourceViews为空，则为系统默认推出动画
+-(instancetype)initWithSourceViews:(nullable NSArray<UIView *> *)sourceViews;
 @end
 
 NS_ASSUME_NONNULL_END

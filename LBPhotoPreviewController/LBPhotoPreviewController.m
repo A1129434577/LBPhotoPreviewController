@@ -92,7 +92,7 @@ typedef enum {
 #define VIEW_TAG 666666
 #define LBPhotoPreviewImageViewTag VIEW_TAG-1
 @interface LBPhotoPreviewController ()<LBReusableScrollViewDelegate>
-@property (nonatomic,weak)UIView *sourceView;
+@property (nonatomic,strong)NSArray<UIView *> *sourceViews;
 @property (nonatomic,strong)LBPhotoPreviewTransitioning *transitioning;
 
 @property (nonatomic,assign)BOOL navigationBarIsHidden;
@@ -130,16 +130,16 @@ typedef enum {
 }
 - (instancetype)init
 {
-    return [self initWithSourceView:nil];
+    return [self initWithSourceViews:nil];
 }
-- (instancetype)initWithSourceView:(UIView *)sourceView
+- (instancetype)initWithSourceViews:(NSArray<UIView *> *)sourceViews
 {
     self = [super init];
     if (self) {
         self.modalPresentationStyle = UIModalPresentationCustom;
         
-        if (sourceView) {
-            self.sourceView = sourceView;
+        if (sourceViews.count) {
+            self.sourceViews = sourceViews;
             _transitioning = [[LBPhotoPreviewTransitioning alloc] init];
             self.transitioningDelegate = _transitioning;
         }
@@ -255,6 +255,14 @@ typedef enum {
         default:
             break;
     }
+}
+-(UIView *)sourceView{
+    NSInteger currentPage = self.previewScrollView.currentPage;
+    UIView *sourceView = self.sourceViews.firstObject;
+    if (currentPage < self.sourceViews.count) {
+        sourceView = self.sourceViews[currentPage];
+    }
+    return sourceView;;
 }
 
 #pragma mark KVO
@@ -540,10 +548,8 @@ typedef enum {
         LBPhotoPreviewController *toViewController = (LBPhotoPreviewController *)[transitionContext viewControllerForKey:UITransitionContextToViewControllerKey];
         [containerView addSubview:toViewController.view];
         
-        CGRect sourceViewFrameInWindow = [LB_KEY_WINDOW convertRect:toViewController.sourceView.frame fromView:toViewController.sourceView.superview];
-        
-        toViewController.view.transform = CGAffineTransformScale(CGAffineTransformIdentity, CGRectGetWidth(sourceViewFrameInWindow)/CGRectGetWidth(toViewController.view.frame), CGRectGetHeight(sourceViewFrameInWindow)/CGRectGetHeight(toViewController.view.frame));
-        toViewController.view.center = CGPointMake(CGRectGetMidX(sourceViewFrameInWindow), CGRectGetMidY(sourceViewFrameInWindow));
+        toViewController.view.transform = CGAffineTransformScale(CGAffineTransformIdentity, CGRectGetWidth(toViewController.sourceView.bounds)/CGRectGetWidth(toViewController.view.bounds), CGRectGetHeight(toViewController.sourceView.bounds)/CGRectGetHeight(toViewController.view.bounds));
+        toViewController.view.center = [LB_KEY_WINDOW convertPoint:toViewController.sourceView.center fromView:toViewController.sourceView.superview];
         
         [UIView animateWithDuration:[self transitionDuration:transitionContext] animations:^{
             toViewController.view.transform = CGAffineTransformIdentity;
@@ -559,10 +565,17 @@ typedef enum {
         fromViewController.titleView.hidden = YES;
         fromViewController.view.backgroundColor = [UIColor clearColor];
         
-        CGRect sourceViewFrameInWindow = [LB_KEY_WINDOW convertRect:fromViewController.sourceView.frame fromView:fromViewController.sourceView.superview];
+        UIScrollView *pinchScrollView = (UIScrollView *)[fromViewController.previewScrollView viewWithTag:VIEW_TAG+fromViewController.previewScrollView.currentPage];
+        UIImageView *imageView = [pinchScrollView viewWithTag:LBPhotoPreviewImageViewTag];
+        imageView.layer.cornerRadius = fromViewController.sourceView.layer.cornerRadius;
+        
+        if (imageView.image.size.width>0 && imageView.image.size.height>0) {
+            imageView.bounds = CGRectMake(0, 0, CGRectGetWidth(imageView.bounds), CGRectGetWidth(imageView.bounds)/imageView.image.size.width*imageView.image.size.height);
+        }
+        
         [UIView animateWithDuration:[self transitionDuration:transitionContext] animations:^{
-            fromViewController.view.transform = CGAffineTransformScale(CGAffineTransformIdentity, 0.01, 0.01);
-            fromViewController.view.center = CGPointMake(CGRectGetMidX(sourceViewFrameInWindow), CGRectGetMidY(sourceViewFrameInWindow));
+            imageView.transform = CGAffineTransformScale(CGAffineTransformIdentity, CGRectGetWidth(fromViewController.sourceView.bounds)/CGRectGetWidth(imageView.bounds), CGRectGetHeight(fromViewController.sourceView.bounds)/CGRectGetHeight(imageView.bounds));;
+            imageView.center = [LB_KEY_WINDOW convertPoint:fromViewController.sourceView.center fromView:fromViewController.sourceView.superview];
         } completion:^(BOOL finished) {
             [transitionContext completeTransition:YES];
         }];

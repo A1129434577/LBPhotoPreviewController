@@ -557,7 +557,8 @@ typedef enum {
         } completion:^(BOOL finished) {
             [transitionContext completeTransition:YES];
         }];
-    }else if (self.type == LBPhotoPreviewAnimationTypeDismiss){
+    }
+    else if (self.type == LBPhotoPreviewAnimationTypeDismiss){
         containerView.backgroundColor = [UIColor clearColor];
         
         //源控制器
@@ -574,7 +575,7 @@ typedef enum {
         }
         
         [UIView animateWithDuration:[self transitionDuration:transitionContext] animations:^{
-            imageView.transform = CGAffineTransformScale(CGAffineTransformIdentity, CGRectGetWidth(fromViewController.sourceView.bounds)/CGRectGetWidth(imageView.bounds), CGRectGetHeight(fromViewController.sourceView.bounds)/CGRectGetHeight(imageView.bounds));;
+            imageView.transform = CGAffineTransformScale(CGAffineTransformIdentity, CGRectGetWidth(fromViewController.sourceView.bounds)/CGRectGetWidth(imageView.bounds), CGRectGetHeight(fromViewController.sourceView.bounds)/CGRectGetHeight(imageView.bounds));
             imageView.center = [LB_KEY_WINDOW convertPoint:fromViewController.sourceView.center fromView:fromViewController.sourceView.superview];
         } completion:^(BOOL finished) {
             [transitionContext completeTransition:YES];

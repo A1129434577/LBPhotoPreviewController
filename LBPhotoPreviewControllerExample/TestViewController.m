@@ -36,7 +36,8 @@
     
     [imageNameArray enumerateObjectsUsingBlock:^(NSString * _Nonnull obj, NSUInteger idx, BOOL * _Nonnull stop) {
         UIButton *btn = [[UIButton alloc] initWithFrame:CGRectMake((CGRectGetWidth(self.view.frame)-300)/2, 100+idx*(25+200), 300, 200)];
-        btn.layer.cornerRadius = 10;
+        btn.clipsToBounds = YES;
+        btn.layer.cornerRadius = 20;
         btn.backgroundColor = [UIColor groupTableViewBackgroundColor];
         [btn addTarget:self action:@selector(phonePreviewTest:) forControlEvents:UIControlEventTouchUpInside];
         [self.view addSubview:btn];

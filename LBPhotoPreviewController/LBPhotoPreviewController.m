@@ -548,8 +548,10 @@ typedef enum {
         LBPhotoPreviewController *toViewController = (LBPhotoPreviewController *)[transitionContext viewControllerForKey:UITransitionContextToViewControllerKey];
         [containerView addSubview:toViewController.view];
         
-        toViewController.view.transform = CGAffineTransformScale(CGAffineTransformIdentity, CGRectGetWidth(toViewController.sourceView.bounds)/CGRectGetWidth(toViewController.view.bounds), CGRectGetHeight(toViewController.sourceView.bounds)/CGRectGetHeight(toViewController.view.bounds));
-        toViewController.view.center = [LB_KEY_WINDOW convertPoint:toViewController.sourceView.center fromView:toViewController.sourceView.superview];
+        UIView *sourceView = toViewController.sourceView;
+        
+        toViewController.view.transform = CGAffineTransformScale(CGAffineTransformIdentity, CGRectGetWidth(sourceView.bounds)/CGRectGetWidth(toViewController.view.bounds), CGRectGetHeight(sourceView.bounds)/CGRectGetHeight(toViewController.view.bounds));
+        toViewController.view.center = [LB_KEY_WINDOW convertPoint:sourceView.center fromView:sourceView.superview];
         
         [UIView animateWithDuration:[self transitionDuration:transitionContext] animations:^{
             toViewController.view.transform = CGAffineTransformIdentity;
@@ -566,17 +568,19 @@ typedef enum {
         fromViewController.titleView.hidden = YES;
         fromViewController.view.backgroundColor = [UIColor clearColor];
         
+        UIView *sourceView = fromViewController.sourceView;
+        
         UIScrollView *pinchScrollView = (UIScrollView *)[fromViewController.previewScrollView viewWithTag:VIEW_TAG+fromViewController.previewScrollView.currentPage];
         UIImageView *imageView = [pinchScrollView viewWithTag:LBPhotoPreviewImageViewTag];
-        imageView.layer.cornerRadius = fromViewController.sourceView.layer.cornerRadius;
+        imageView.layer.cornerRadius = sourceView.layer.cornerRadius/MIN(CGRectGetHeight(sourceView.bounds), CGRectGetWidth(sourceView.bounds))*MIN(CGRectGetHeight(imageView.bounds), CGRectGetWidth(imageView.bounds));
         
         if (imageView.image.size.width>0 && imageView.image.size.height>0) {
             imageView.bounds = CGRectMake(0, 0, CGRectGetWidth(imageView.bounds), CGRectGetWidth(imageView.bounds)/imageView.image.size.width*imageView.image.size.height);
         }
         
         [UIView animateWithDuration:[self transitionDuration:transitionContext] animations:^{
-            imageView.transform = CGAffineTransformScale(CGAffineTransformIdentity, CGRectGetWidth(fromViewController.sourceView.bounds)/CGRectGetWidth(imageView.bounds), CGRectGetHeight(fromViewController.sourceView.bounds)/CGRectGetHeight(imageView.bounds));
-            imageView.center = [LB_KEY_WINDOW convertPoint:fromViewController.sourceView.center fromView:fromViewController.sourceView.superview];
+            imageView.transform = CGAffineTransformScale(CGAffineTransformIdentity, CGRectGetWidth(sourceView.bounds)/CGRectGetWidth(imageView.bounds), CGRectGetHeight(sourceView.bounds)/CGRectGetHeight(imageView.bounds));
+            imageView.center = [LB_KEY_WINDOW convertPoint:sourceView.center fromView:sourceView.superview];
         } completion:^(BOOL finished) {
             [transitionContext completeTransition:YES];
         }];

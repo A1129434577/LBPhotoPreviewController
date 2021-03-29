@@ -578,12 +578,22 @@ typedef enum {
             imageView.bounds = CGRectMake(0, 0, CGRectGetWidth(imageView.bounds), CGRectGetWidth(imageView.bounds)/imageView.image.size.width*imageView.image.size.height);
         }
         
-        [UIView animateWithDuration:[self transitionDuration:transitionContext] animations:^{
-            imageView.transform = CGAffineTransformScale(CGAffineTransformIdentity, CGRectGetWidth(sourceView.bounds)/CGRectGetWidth(imageView.bounds), CGRectGetHeight(sourceView.bounds)/CGRectGetHeight(imageView.bounds));
-            imageView.center = [LB_KEY_WINDOW convertPoint:sourceView.center fromView:sourceView.superview];
-        } completion:^(BOOL finished) {
-            [transitionContext completeTransition:YES];
-        }];
+        if (CGRectIntersectsRect(LB_KEY_WINDOW.bounds, [LB_KEY_WINDOW convertRect:sourceView.frame fromView:sourceView.superview])) {
+            [UIView animateWithDuration:[self transitionDuration:transitionContext] animations:^{
+                imageView.transform = CGAffineTransformScale(CGAffineTransformIdentity, CGRectGetWidth(sourceView.bounds)/CGRectGetWidth(imageView.bounds), CGRectGetHeight(sourceView.bounds)/CGRectGetHeight(imageView.bounds));
+                imageView.center = [LB_KEY_WINDOW convertPoint:sourceView.center fromView:sourceView.superview];
+            } completion:^(BOOL finished) {
+                [transitionContext completeTransition:YES];
+            }];
+        }else{
+            [UIView animateWithDuration:[self transitionDuration:transitionContext] delay:0 options:UIViewAnimationOptionCurveEaseOut animations:^(void){
+                imageView.alpha = 0;
+                imageView.transform = CGAffineTransformScale(CGAffineTransformIdentity, 0.01, 0.01);
+            }completion:^(BOOL finished){
+                [transitionContext completeTransition:YES];
+            }];
+        }
+        
     }
     
 }
